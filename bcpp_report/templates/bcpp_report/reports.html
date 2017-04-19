@@ -1,0 +1,124 @@
+{% extends 'edc_base/base.html' %}
+
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block extra-scripts %}
+	{{ block.super }}
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<style type="text/css">
+          #exTab1 .tab-content {
+			  color : white;
+			  background-color: #428bca;
+			  padding : 5px 15px;
+			}
+     </style>
+     <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css"> 
+	<script src="{% static 'bcpp_report/js/jquery-1.9.1.js' %}"></script>
+	<script src="{% static 'bcpp_report/js/jquery-ui.js' %}"></script>
+	<script>
+	$(document).ready(function() {
+	    $('.datepicker').datepicker();
+	});
+	</script>
+{% endblock extra-scripts %}
+
+
+{% block main %}
+{{ block.super }}
+<div id="exTab2" class="container">	
+	<div class="alert alert-warning alert-dismissable fade in">
+		{% if messages %}
+		<ul class="messages">
+			{% for message in messages %}
+				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+		    {% endfor %}
+		</ul>
+		{% endif %}
+	</div>
+	<hr>
+		{% if map_area %}
+			Reports for <b>{{map_area}}</b>
+		{% else %}
+			{% if created_file.map_area == 'All Communities' %}
+				Reports for <b>All communities</b>
+			{% else %}
+				<b>{{ created_file.map_area }}</b>
+			{% endif %}
+		{% endif %}
+		<span class="pull-right">
+		{% if reports_created_datetime %}
+			Report files generated on: <b>{{reports_created_datetime}}</b>
+		{% endif %}
+		</span>
+	<hr>
+	<ul class="nav nav-tabs">
+		<li class="active">
+        <a  href="#1" data-toggle="tab">Plots Report</a>
+		</li><li><a href="#2" data-toggle="tab">Household</a></li>
+		<li><a href="#3" data-toggle="tab">Member Report</a></li>
+		<li><a href="#4" data-toggle="tab">Specimen Report</a></li>
+		<span class="pull-right">
+			<li><a role="button" class="btn btn-sm btn-default btn-block" href="{% url 'bcpp_report:home_url' %}">Home</a></li>
+		</span>
+	</ul>
+
+	<div class="tab-content ">
+		<div class="tab-pane active" id="1">
+		<br ><hr >
+			<div class="raw">
+				<div id="div-home-right" class="col-md-12">
+					<div id="div-home-right" class="col-md-6">
+						{% include 'bcpp_report/plots.html' %}
+	    			</div>
+    			</div>
+    		</div>
+		</div>
+		<div class="tab-pane" id="2">
+			<br ><hr >
+			<div class="raw">
+				<div id="div-home-right" class="col-md-12">
+					<div id="div-home-right" class="col-md-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							Household Search Form
+						</div>
+					    <form id="household-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+							{% csrf_token %}
+							{{ household_report_form }}
+							<input type="submit" value="Query">
+						</form>
+					</div>
+					</div>
+					{% include 'bcpp_report/household.html' %}
+    			</div>
+    		</div>
+		</div>
+        <div class="tab-pane" id="3">
+          <br ><hr >
+			<div class="raw">
+				<div id="div-home-right" class="col-md-12">
+					<div id="div-home-right" class="col-md-12">
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							Member Search Form
+						</div>
+					    <form id="household-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+							{% csrf_token %}
+							{{ member_report_form }}
+							<input type="submit" value="Query">
+						</form>
+					</div>
+					</div>
+					{% include 'bcpp_report/member.html' %}
+    			</div>
+    		</div>
+		</div>
+		<div class="tab-pane" id="4">
+          {% include 'bcpp_report/requisition_tabs.html' %}
+		</div>
+	</div>
+</div>
+{% endblock main %}
+

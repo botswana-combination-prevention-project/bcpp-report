@@ -1,0 +1,23 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		Plot Statistics
+		<form id="plot-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+			{% csrf_token %}
+			{{ form }}
+			<input type="submit" value="Query">
+		</form>
+	</div>
+	<div class="panel-body">
+    <table class="table table-condensed">
+	    <tbody>
+	    {% for key, value in plot_report.items %}
+		<tr>
+	        <td>{{key}}</td>
+	        <td><span class="badge badge-error">{{value}}</span></td>
+			<td><a href="">list</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	</table>
+	</div>
+</div>
