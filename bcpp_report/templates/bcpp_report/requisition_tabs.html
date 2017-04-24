@@ -1,0 +1,118 @@
+<br>
+<ul class="nav nav-tabs">
+	<li class="active"><a  href="#11" data-toggle="tab">Year 1 Requisitinos Report</a>
+	</li><li><a href="#12" data-toggle="tab">Year 2 Requisitinos Report</a></li>
+	<li><a href="#13" data-toggle="tab">Year 3 Requisitinos Report</a></li>
+</ul>
+<div class="tab-content ">
+	<div class="tab-pane active" id="11">
+	<br ><hr >
+	<div class="raw">
+		<div id="div-home-right" class="col-md-12">
+			<div id="div-home-right" class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Requisition Search Form</div>
+				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+					{% csrf_token %}
+					{{ requisition_report_form }}
+					<input type="submit" value="Query">
+				</form>
+			</div>
+			</div>
+				{% for panel, report in requisition_report.0.items %}
+				<div id="div-home-right" class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						{{panel}}
+					</div>
+				    <table class="table table-condensed">
+					    <tbody>
+					    {% for key, value in report.items %}
+						<tr>
+					        <td>{{key}}</td>
+					        <td><span class="badge badge-error">{{value}}</span></td>
+						</tr>
+						{% endfor %}
+					</tbody>
+					</table>
+				</div>
+				</div>
+				{% endfor %}
+    		</div>
+    	</div>
+    	</div>
+
+	<div class="tab-pane" id="12">
+	<br ><hr >
+	<div class="raw">
+		<div id="div-home-right" class="col-md-12">
+			<div id="div-home-right" class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Requisition Search Form</div>
+				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+					{% csrf_token %}
+					{{ requisition_report_form }}
+					<input type="submit" value="Query">
+				</form>
+			</div>
+			</div>
+				{% for panel, report in requisition_report.1.items %}
+				<div id="div-home-right" class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						{{panel}}
+					</div>
+				    <table class="table table-condensed">
+					    <tbody>
+					    {% for key, value in report.items %}
+						<tr>
+					        <td>{{key}}</td>
+					        <td><span class="badge badge-error">{{value}}</span></td>
+						</tr>
+						{% endfor %}
+					</tbody>
+					</table>
+				</div>
+				</div>
+				{% endfor %}
+    		</div>
+	</div>
+	</div>
+
+	<div class="tab-pane" id="13">
+	<br ><hr >
+	<div class="raw">
+		<div id="div-home-right" class="col-md-12">
+			<div id="div-home-right" class="col-md-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">Requisition Search Form</div>
+				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+					{% csrf_token %}
+					{{ requisition_report_form }}
+					<input type="submit" value="Query">
+				</form>
+			</div>
+			</div>
+				{% for panel, report in requisition_report.2.items %}
+				<div id="div-home-right" class="col-md-6">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						{{panel}}
+					</div>
+				    <table class="table table-condensed">
+					    <tbody>
+					    {% for key, value in report.items %}
+						<tr>
+					        <td>{{key}}</td>
+					        <td><span class="badge badge-error">{{value}}</span></td>
+						</tr>
+						{% endfor %}
+					</tbody>
+					</table>
+				</div>
+				</div>
+				{% endfor %}
+    		</div>
+	</div>
+	</div>
+</div>

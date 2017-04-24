@@ -1,0 +1,21 @@
+{% for year, reports in member_report.items %}
+<div id="div-home-right" class="col-md-6">
+<div class="panel panel-default">
+	<div class="panel-heading">
+		{{year}} Member Statistics
+	</div>
+	<div class="panel-body">
+    <table class="table table-condensed">
+	    <tbody>
+	    {% for key, value in reports.items %}
+		<tr>
+	        <td>{{key}}</td>
+	        <td><span class="badge badge-error">{{value}}</span></td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	</table>
+	</div>
+</div>
+</div>
+{% endfor %}
