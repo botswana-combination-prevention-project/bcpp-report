@@ -30,4 +30,4 @@ class ReportFile(BaseUuidModel):
 
     class Meta:
         app_label = 'bcpp_report'
-        unique_together = ("name", 'map_area', 'report_datetime')
+        unique_together = ('name', 'map_area', 'report_datetime')

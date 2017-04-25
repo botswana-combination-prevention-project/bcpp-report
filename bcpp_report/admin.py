@@ -7,8 +7,8 @@ from edc_base.modeladmin_mixins import (
     ModelAdminReadOnlyMixin, ModelAdminAuditFieldsMixin)
 
 from .admin_site import bcpp_report_admin
-from .models import ReportFile
 from .forms import ReportFileForm
+from .models import ReportFile
 
 
 class ModelAdminMixin(ModelAdminFormInstructionsMixin,
@@ -38,4 +38,4 @@ class ReportFileAdmin(ModelAdminMixin):
         'name',
         'hostname_modified')
 
-    search_fields = ('name',)
+    search_fields = ('name', )

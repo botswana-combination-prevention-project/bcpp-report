@@ -4,7 +4,7 @@ import pandas as pd
 from django.apps import apps as django_apps
 from django.contrib import messages
 
-from bcpp_report.forms import MemberQueryReportForm
+from ..forms import MemberQueryReportForm
 
 
 class MemberReportViewMixin:
@@ -12,18 +12,20 @@ class MemberReportViewMixin:
     def member_report(self, map_area=None):
         if map_area:
             pass
-        members_hearder = django_apps.get_app_config(
-            'bcpp_report').members_hearder
+        members_header = django_apps.get_app_config(
+            'bcpp_report').members_header
         members_file_path = django_apps.get_app_config(
             'bcpp_report').members_file_path
         if not os.path.exists(members_file_path):
             messages.add_message(
                 self.request,
                 messages.WARNING,
-                'The file {0} does not exists, please generate report files first.'.format(members_file_path))
+                'The file {0} does not exists, please generate report '
+                'files first.'.format(members_file_path))
             return {}
         else:
-            df = pd.read_csv(members_file_path, skipinitialspace=True, usecols=members_hearder)
+            df = pd.read_csv(members_file_path,
+                             skipinitialspace=True, usecols=members_header)
             if map_area:
                 df = df[(df.survey_schedule.str.contains(map_area, regex=True))]
 

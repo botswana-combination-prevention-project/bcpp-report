@@ -6,16 +6,14 @@ from django.views.generic.edit import FormView
 
 from edc_base.view_mixins import EdcBaseViewMixin
 
+from bcpp_subject.models import SubjectRequisition
 from household.models import HouseholdStructure
 from member.models import HouseholdMember
-
-from bcpp_subject.models import SubjectRequisition
-
 from plot.models import Plot
 
-from .utils import dump, report_files
-from ..models import ReportFile
 from ..forms import GenerateCommunityReportForm
+from ..models import ReportFile
+from .utils import dump, report_files
 
 
 class GenerateReportFiles(EdcBaseViewMixin, TemplateView, FormView):
@@ -59,31 +57,31 @@ class GenerateReportFiles(EdcBaseViewMixin, TemplateView, FormView):
         else:
             map_area = 'All Communities'
 
-        plot_hearder = django_apps.get_app_config(
-            'bcpp_report').plot_hearder
+        plot_header = django_apps.get_app_config(
+            'bcpp_report').plot_header
         plots_file_path = django_apps.get_app_config(
             'bcpp_report').plots_file_path
-        dump(plots_qs, plot_hearder, plots_file_path)
+        dump(plots_qs, plot_header, plots_file_path)
         ReportFile.objects.create(name=plots_file_path, map_area=map_area)
 
         #  Generate household structure report file
-        household_strucuture_hearder = django_apps.get_app_config(
-            'bcpp_report').household_strucuture_hearder
+        household_structure_header = django_apps.get_app_config(
+            'bcpp_report').household_structure_header
         household_structures_file_path = django_apps.get_app_config(
             'bcpp_report').household_structures_file_path
         dump(
             household_Structure_qs,
-            household_strucuture_hearder,
+            household_structure_header,
             household_structures_file_path)
         ReportFile.objects.create(
             name=household_structures_file_path, map_area=map_area)
 
         #  Generate household member report file
-        members_hearder = django_apps.get_app_config(
-            'bcpp_report').members_hearder
+        members_header = django_apps.get_app_config(
+            'bcpp_report').members_header
         members_file_path = django_apps.get_app_config(
             'bcpp_report').members_file_path
-        dump(member_qs, members_hearder, members_file_path)
+        dump(member_qs, members_header, members_file_path)
         ReportFile.objects.create(name=members_file_path, map_area=map_area)
 
         #  Generate subject requisition report file
@@ -92,7 +90,8 @@ class GenerateReportFiles(EdcBaseViewMixin, TemplateView, FormView):
         requisitions_file_path = django_apps.get_app_config(
             'bcpp_report').requisitions_file_path
         dump(requisition_qs, requisition_header, requisitions_file_path)
-        ReportFile.objects.create(name=requisitions_file_path, map_area=map_area)
+        ReportFile.objects.create(
+            name=requisitions_file_path, map_area=map_area)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
