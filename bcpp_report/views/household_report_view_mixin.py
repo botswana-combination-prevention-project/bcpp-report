@@ -4,14 +4,14 @@ import pandas as pd
 from django.apps import apps as django_apps
 from django.contrib import messages
 
-from bcpp_report.forms import HouseholdQueryReportForm
+from ..forms import HouseholdQueryReportForm
 
 
 class HouseholdReportViewMixin:
 
     def household_report(self, map_area=None):
-        household_strucuture_hearder = django_apps.get_app_config(
-            'bcpp_report').household_strucuture_hearder
+        household_structure_header = django_apps.get_app_config(
+            'bcpp_report').household_structure_header
         household_structures_file_path = django_apps.get_app_config(
             'bcpp_report').household_structures_file_path
         if not os.path.exists(household_structures_file_path):
@@ -24,7 +24,7 @@ class HouseholdReportViewMixin:
             df = pd.read_csv(
                 household_structures_file_path,
                 skipinitialspace=True,
-                usecols=household_strucuture_hearder)
+                usecols=household_structure_header)
             if map_area:
                 df = df[(df.survey_schedule.str.contains(map_area, regex=True))]
 

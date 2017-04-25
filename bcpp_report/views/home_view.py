@@ -5,8 +5,8 @@ from django.views.generic.edit import FormView
 
 from edc_base.view_mixins import EdcBaseViewMixin
 
-from .utils import report_files
 from ..forms import GenerateCommunityReportForm
+from .utils import report_files
 
 
 class HomeView(EdcBaseViewMixin, TemplateView, FormView):

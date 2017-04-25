@@ -6,7 +6,8 @@ from django.contrib import messages
 
 from edc_constants.constants import YES, NO
 
-from bcpp_subject.constants import MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, POC_VIRAL_LOAD
+from bcpp_subject.constants import (
+    MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, POC_VIRAL_LOAD)
 
 from ..forms import RequisitionQueryReportForm
 
@@ -23,7 +24,8 @@ class RequisitionReportViewMixin:
             messages.add_message(
                 self.request,
                 messages.WARNING,
-                'The file {0} does not exists, please generate report files first.'.format(requisitions_file_path))
+                'The file {0} does not exists, please generate report files '
+                'first.'.format(requisitions_file_path))
             return {}
         else:
             df = pd.read_csv(
@@ -31,21 +33,27 @@ class RequisitionReportViewMixin:
                 skipinitialspace=True,
                 usecols=requisition_header)
             if study_site_name:
-                df = df[(df.study_site_name.str.contains(study_site_name, regex=True, na=False))]
+                df = df[(df.study_site_name.str.contains(
+                    study_site_name, regex=True, na=False))]
             if start_date and end_date:
                 #  Re-format dates
                 start_date = start_date.split('/')
-                start_date = start_date[2] + '-' + start_date[1] + '-' + start_date[0] + ' 00:00:00+00:00'
+                start_date = start_date[2] + '-' + start_date[1] + \
+                    '-' + start_date[0] + ' 00:00:00+00:00'
                 end_date = end_date.split('/')
-                end_date = end_date[2] + '-' + end_date[1] + '-' + end_date[0] + ' 00:00:00+00:00'
+                end_date = end_date[2] + '-' + end_date[1] + \
+                    '-' + end_date[0] + ' 00:00:00+00:00'
 
                 df = df[
                     (df['requisition_datetime'] > start_date) &
                     (df['requisition_datetime'] <= end_date)]
 
-            df_year_1_requisitions = df[df.survey_schedule.str.contains('bcpp-survey.bcpp-year-1', regex=True, na=False)]
-            df_year_2_requisitions = df[df.survey_schedule.str.contains('bcpp-survey.bcpp-year-2', regex=True, na=False)]
-            df_year_3_requisitions = df[df.survey_schedule.str.contains('bcpp-survey.bcpp-year-3', regex=True, na=False)]
+            df_year_1_requisitions = df[df.survey_schedule.str.contains(
+                'bcpp-survey.bcpp-year-1', regex=True, na=False)]
+            df_year_2_requisitions = df[df.survey_schedule.str.contains(
+                'bcpp-survey.bcpp-year-2', regex=True, na=False)]
+            df_year_3_requisitions = df[df.survey_schedule.str.contains(
+                'bcpp-survey.bcpp-year-3', regex=True, na=False)]
 
         return [
             self.report_per_panel(df_year_1_requisitions),
@@ -154,8 +162,10 @@ class RequisitionReportViewMixin:
             requisition_report_form_instance = RequisitionQueryReportForm(
                 self.request.POST)
             if requisition_report_form_instance.is_valid():
-                map_area = requisition_report_form_instance.data.get('map_area')
-                start_date = requisition_report_form_instance.data.get('start_date')
+                map_area = requisition_report_form_instance.data.get(
+                    'map_area')
+                start_date = requisition_report_form_instance.data.get(
+                    'start_date')
                 end_end = requisition_report_form_instance.data.get('end_end')
                 requisition_report = self.requisition_report(
                     study_site_name=map_area,

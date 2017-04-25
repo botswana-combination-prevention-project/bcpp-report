@@ -7,7 +7,7 @@ from django.conf import settings
 
 class AppConfig(DjangoAppConfig):
     name = 'bcpp_report'
-    verbose_name = 'Bcpp Report Map'
+    verbose_name = 'Bcpp Report'
     base_template_name = 'edc_base/base.html'
     app_label = 'bcpp_report'
     report_files_path = os.path.join(settings.MEDIA_ROOT, 'bcpp_report')
@@ -22,13 +22,13 @@ class AppConfig(DjangoAppConfig):
         report_files_path, 'requisitions_report_file.csv')
 
     # Files headers
-    plot_hearder = [
-        'confirmed', 'ess', 'enrolled',
+    plot_header = [
+        'confirmed', 'ess', 'rss', 'enrolled',
         'accessible', 'status', 'access_attempts', 'map_area']
-    household_strucuture_hearder = [
+    household_structure_header = [
         'survey_schedule', 'enumerated', 'enumeration_attempts',
         'enrolled', 'eligible_members', 'refused_enumeration']
-    members_hearder = [
+    members_header = [
         'survey_schedule', 'eligible_member', 'eligible_subject',
         'present_today', 'enrollment_loss_completed', 'undecided',
         'refused', 'absent', 'refused_htc', 'htc']
@@ -40,6 +40,6 @@ class AppConfig(DjangoAppConfig):
 
     def ready(self):
         sys.stdout.write('Loading {} ...\n'.format(self.verbose_name))
-        sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))
         if not os.path.exists(self.report_files_path):
             os.makedirs(self.report_files_path)
+        sys.stdout.write(' Done loading {}.\n'.format(self.verbose_name))

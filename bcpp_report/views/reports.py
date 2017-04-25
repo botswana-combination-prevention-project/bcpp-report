@@ -4,14 +4,16 @@ from django.views.generic import TemplateView
 
 from edc_base.view_mixins import EdcBaseViewMixin
 
-from ..models import ReportFile
 from .household_report_view_mixin import HouseholdReportViewMixin
 from .member_report_view_mixin import MemberReportViewMixin
 from .plot_report_view_mixin import PlotReportViewMixin
 from .requisition_report_view_mixin import RequisitionReportViewMixin
+from ..models import ReportFile
 
 
-class ReportsView(EdcBaseViewMixin, PlotReportViewMixin, HouseholdReportViewMixin, MemberReportViewMixin, RequisitionReportViewMixin, TemplateView):
+class ReportsView(EdcBaseViewMixin, PlotReportViewMixin,
+                  HouseholdReportViewMixin, MemberReportViewMixin,
+                  RequisitionReportViewMixin, TemplateView):
 
     app_config_name = 'bcpp_report'
     template_name = 'bcpp_report/reports.html'
