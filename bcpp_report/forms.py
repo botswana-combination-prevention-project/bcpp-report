@@ -2,17 +2,9 @@ from django import forms
 
 from functools import partial
 
-from .models import ReportFile
 from .choices import MAP_AREAS
 
 DateInput = partial(forms.DateInput, {'class': 'datepicker'})
-
-
-class ReportFileForm(forms.ModelForm):
-
-    class Meta:
-        model = ReportFile
-        fields = '__all__'
 
 
 class PlotQueryReportForm(forms.Form):

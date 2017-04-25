@@ -1,102 +1,147 @@
-import os
-import pandas as pd
+from bcpp_subject.models import SubjectVisit
+from member.models import HouseholdMember, EnrollmentLoss
 
-from django.apps import apps as django_apps
-from django.contrib import messages
 
+from ..constants import YEAR_1_SURVEY, YEAR_2_SURVEY, YEAR_3_SURVEY
 from ..forms import MemberQueryReportForm
 
 
 class MemberReportViewMixin:
 
+    def enrollment_loss_count(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return EnrollmentLoss.objects.filter(
+            household_member__survey_schedule__icontains=survey_schedule).count()
+
+    def consented_members(self, survey_schedule=None, map_area=None):
+        """Return a count of consented member for a survey.
+        """
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return SubjectVisit.objects.filter(
+            survey_schedule__icontains=survey_schedule).count()
+
+    def ineligible_members(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enrollment_loss_completed=True).count()
+
+    def eligible_present_not_consented(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            present_today=True,
+            eligible_subject=True).count()
+
+    def undecided(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            undecided=True).count()
+
+    def refused(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            refused=True).count()
+
+    def absent(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            absent=True).count()
+
+    def htc(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            htc=True).count()
+
+    def refused_htc(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            refused_htc=True).count()
+
+    def total_members(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdMember.objects.filter(
+            survey_schedule__icontains=survey_schedule).count()
+
     def member_report(self, map_area=None):
-        if map_area:
-            pass
-        members_header = django_apps.get_app_config(
-            'bcpp_report').members_header
-        members_file_path = django_apps.get_app_config(
-            'bcpp_report').members_file_path
-        if not os.path.exists(members_file_path):
-            messages.add_message(
-                self.request,
-                messages.WARNING,
-                'The file {0} does not exists, please generate report '
-                'files first.'.format(members_file_path))
-            return {}
-        else:
-            df = pd.read_csv(members_file_path,
-                             skipinitialspace=True, usecols=members_header)
-            if map_area:
-                df = df[(df.survey_schedule.str.contains(map_area, regex=True))]
 
-            df_year_1 = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-1', regex=True)]
-            df_year_2 = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-2', regex=True)]
-            df_year_3 = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-3', regex=True)]
+        year_1_report = {
+            'Total Members': self.total_members(YEAR_1_SURVEY, map_area),
+            'Eligible member, present not consented': self.eligible_present_not_consented(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Ineligible': self.ineligible_members(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Enrollment loss': self.enrollment_loss_count(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Undecided': self.undecided(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Refused': self.refused(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Absent': self.absent(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'HTC': self.htc(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Refused htc': self.refused_htc(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Consented subjects': self.consented_members(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area)}
 
-            year_1_report = {
-                'Total Members': len(df_year_1),
-                'Eligible members Not consented': len(
-                    df_year_1[(df_year_1.eligible_member) &
-                              (df_year_1.eligible_subject == False)]),
-                'Members not eligibles': len(
-                    df_year_1[df_year_1.eligible_member == False]),
-                'Eligible member, present not consented': len(
-                    df_year_1[(df_year_1.eligible_member) &
-                              (df_year_1.present_today) &
-                              (df_year_1.eligible_subject == False)]),
-                'Enrollment loss': len(
-                    df_year_1[df_year_1.enrollment_loss_completed == False]),
-                'Undecided': len(df_year_1[df_year_1.undecided]),
-                'Refused': len(df_year_1[df_year_1.refused]),
-                'Absent': len(df_year_1[df_year_1.absent]),
-                'HTC': len(df_year_1[df_year_1.htc]),
-                'Refused htc': len(df_year_1[df_year_1.refused_htc]),
-                'Consented subjects': len(df_year_1[df_year_1.eligible_subject])}
+        year_2_report = {
+            'Total Members': self.total_members(YEAR_2_SURVEY, map_area),
+            'Eligible member, present not consented': self.eligible_present_not_consented(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Members not eligibles': self.ineligible_members(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Enrollment loss': self.enrollment_loss_count(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Undecided': self.undecided(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Refused': self.refused(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Absent': self.absent(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'HTC': self.htc(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Refused htc': self.refused_htc(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Consented subjects': self.consented_members(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area)}
 
-            year_2_report = {
-                'Total Members': len(df_year_2),
-                'Eligible members Not consented': len(
-                    df_year_2[(df_year_2.eligible_member) &
-                              (df_year_2.eligible_subject == False)]),
-                'Members not eligibles': len(
-                    df_year_2[df_year_2.eligible_member == False]),
-                'Eligible member, present not consented': len(
-                    df_year_2[(df_year_2.eligible_member) &
-                              (df_year_2.present_today) &
-                              (df_year_2.eligible_subject == False)]),
-                'Enrollment los': len(
-                    df_year_2[df_year_2.enrollment_loss_completed == False]),
-                'Undecided': len(df_year_2[df_year_2.undecided]),
-                'Refused': len(df_year_2[df_year_2.refused]),
-                'Absent': len(df_year_2[df_year_2.absent]),
-                'HTC': len(df_year_2[df_year_2.htc]),
-                'Refused htc': len(df_year_2[df_year_2.refused_htc]),
-                'Consented subjects': len(df_year_2[df_year_2.eligible_subject])}
-
-            year_3_report = {
-                'Total Members': len(df_year_3),
-                'Eligible members Not consented': len(
-                    df_year_3[(df_year_3.eligible_member) &
-                              (df_year_3.eligible_subject == False)]),
-                'Members not eligibles': len(
-                    df_year_3[df_year_3.eligible_member == False]),
-                'Eligible member, present not consented': len(
-                    df_year_3[
-                        (df_year_3.eligible_member) &
-                        (df_year_3.present_today) &
-                        (df_year_3.eligible_subject == False)]),
-                'Enrollment los': len(
-                    df_year_3[df_year_3.enrollment_loss_completed == False]),
-                'Undecided': len(df_year_3[df_year_3.undecided]),
-                'Refused': len(df_year_3[df_year_3.refused]),
-                'Absent': len(df_year_3[df_year_3.absent]),
-                'HTC': len(df_year_3[df_year_3.htc]),
-                'Refused htc': len(df_year_3[df_year_3.refused_htc]),
-                'Consented subjects': len(
-                    df_year_3[df_year_3.eligible_subject])}
+        year_3_report = {
+            'Total Members': self.total_members(YEAR_3_SURVEY, map_area),
+            'Eligible member, present not consented': self.eligible_present_not_consented(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Members not eligibles': self.ineligible_members(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Enrollment loss': self.enrollment_loss_count(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Undecided': self.undecided(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Refused': self.refused(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Absent': self.absent(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'HTC': self.htc(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Refused htc': self.refused_htc(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Consented subjects': self.consented_members(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area)}
 
         return {
             'Year 1': year_1_report,

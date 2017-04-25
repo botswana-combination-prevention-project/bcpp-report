@@ -1,159 +1,329 @@
-import os
-import pandas as pd
-
-from django.apps import apps as django_apps
-from django.contrib import messages
-
-from edc_constants.constants import YES, NO
+from datetime import datetime
 
 from bcpp_subject.constants import (
-    MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, POC_VIRAL_LOAD)
+    MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, ELISA)
+from bcpp_subject.models import SubjectRequisition
 
 from ..forms import RequisitionQueryReportForm
+from ..constants import YEAR_1_SURVEY, YEAR_2_SURVEY, YEAR_3_SURVEY
 
 
 class RequisitionReportViewMixin:
 
-    def requisition_report(self, study_site_name=None, start_date=None, end_date=None):
-        requisition_header = django_apps.get_app_config(
-            'bcpp_report').requisition_header
-        requisition_header.append('survey_schedule')
-        requisitions_file_path = django_apps.get_app_config(
-            'bcpp_report').requisitions_file_path
-        if not os.path.exists(requisitions_file_path):
-            messages.add_message(
-                self.request,
-                messages.WARNING,
-                'The file {0} does not exists, please generate report files '
-                'first.'.format(requisitions_file_path))
-            return {}
-        else:
-            df = pd.read_csv(
-                requisitions_file_path,
-                skipinitialspace=True,
-                usecols=requisition_header)
-            if study_site_name:
-                df = df[(df.study_site_name.str.contains(
-                    study_site_name, regex=True, na=False))]
+    def total_requisitions(self, panel_name=None, survey_schedule=None,
+                           map_area=None, start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
             if start_date and end_date:
-                #  Re-format dates
-                start_date = start_date.split('/')
-                start_date = start_date[2] + '-' + start_date[1] + \
-                    '-' + start_date[0] + ' 00:00:00+00:00'
-                end_date = end_date.split('/')
-                end_date = end_date[2] + '-' + end_date[1] + \
-                    '-' + end_date[0] + ' 00:00:00+00:00'
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-                df = df[
-                    (df['requisition_datetime'] > start_date) &
-                    (df['requisition_datetime'] <= end_date)]
+    def is_drawn(self, panel_name=None, survey_schedule=None, map_area=None,
+                 start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    is_drawn=True,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    is_drawn=True).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            is_drawn=True,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-            df_year_1_requisitions = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-1', regex=True, na=False)]
-            df_year_2_requisitions = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-2', regex=True, na=False)]
-            df_year_3_requisitions = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-3', regex=True, na=False)]
+    def not_drawn(self, panel_name=None, survey_schedule=None, map_area=None,
+                  start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    is_drawn=False).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    is_drawn=False).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            is_drawn=False,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        return [
-            self.report_per_panel(df_year_1_requisitions),
-            self.report_per_panel(df_year_2_requisitions),
-            self.report_per_panel(df_year_3_requisitions)]
+    def received(self, panel_name=None, survey_schedule=None, map_area=None,
+                 start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    received=True,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    received=True).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            received=True,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-    def report_per_panel(self, df):
+    def not_received(self, panel_name=None, survey_schedule=None, map_area=None,
+                     start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    received=False).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    received=False).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            received=False,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        df_microtube = df[
-            (df.panel_name.str.contains(MICROTUBE, regex=True, na=False))]
-        df_rbd = df[(df.panel_name.str.contains(
-            RESEARCH_BLOOD_DRAW, regex=True, na=False))]
-        df_venous = df[(df.panel_name.str.contains(
-            VENOUS, regex=True, na=False))]
-        df_vl = df[(df.panel_name.str.contains(
-            VIRAL_LOAD, regex=True, na=False))]
-        df_poc_vl = df[(df.panel_name.str.contains(
-            POC_VIRAL_LOAD, regex=True, na=False))]
+    def processed(self, panel_name=None, survey_schedule=None, map_area=None,
+                  start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    processed=True).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    processed=True).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            processed=True,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        microtube = {
-            'Total Requisitions': len(df_microtube),
-            'Drawn': len(df_microtube[
-                (df_microtube.is_drawn.str.contains(
-                    YES, regex=True, na=False))]),
-            'Not Drawn': len(df_microtube[
-                (df_microtube.is_drawn.str.contains(
-                    NO, regex=True, na=False))]),
-            'Recieved': len(df_microtube[df_microtube.received]),
-            'Not Recieved': len(df_microtube[df_microtube.received == False]),
-            'Processed': len(df_microtube[df_microtube.processed]),
-            'Not Processed': len(df_microtube[df_microtube.processed == False]),
-            'Packed': len(df_microtube[df_microtube.packed]),
-            'Not Packed': len(df_microtube[df_microtube.packed == False]),
-            'Shipped': len(df_microtube[df_microtube.shipped]),
-            'Not Shipped': len(df_microtube[df_microtube.shipped == False])}
+    def not_processed(self, panel_name=None, survey_schedule=None,
+                      map_area=None, start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    processed=False,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    processed=False).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            processed=False,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        venous = {
-            'Total Requisitions': len(df_venous),
-            'Drawn': len(df_venous[
-                (df_venous.is_drawn.str.contains(YES, regex=True, na=False))]),
-            'Not Drawn': len(df_venous[
-                (df_venous.is_drawn.str.contains(NO, regex=True, na=False))]),
-            'Recieved': len(df_venous[df_venous.received]),
-            'Not Recieved': len(df_venous[df_venous.received == False]),
-            'Processed': len(df_venous[df_venous.processed]),
-            'Not Processed': len(df_venous[df_venous.processed == False]),
-            'Packed': len(df_venous[df_venous.packed]),
-            'Not Packed': len(df_venous[df_venous.packed == False]),
-            'Shipped': len(df_venous[df_venous.shipped]),
-            'Not Shipped': len(df_venous[df_venous.shipped == False])}
+    def packed(self, panel_name=None, survey_schedule=None, map_area=None,
+               start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    packed=True,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    packed=True).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            packed=True,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        rbd = {
-            'Total Requisitions': len(df_rbd),
-            'Drawn': len(df_rbd[(
-                df_rbd.is_drawn.str.contains(YES, regex=True, na=False))]),
-            'Not Drawn': len(df_rbd[
-                (df_rbd.is_drawn.str.contains(NO, regex=True, na=False))]),
-            'Recieved': len(df_rbd[df_rbd.received]),
-            'Not Recieved': len(df_rbd[df_rbd.received == False]),
-            'Processed': len(df_rbd[df_rbd.processed]),
-            'Not Processed': len(df_rbd[df_rbd.processed == False]),
-            'Packed': len(df_rbd[df_rbd.packed]),
-            'Not Packed': len(df_rbd[df_rbd.packed == False]),
-            'Shipped': len(df_rbd[df_rbd.shipped]),
-            'Not Shipped': len(df_rbd[df_rbd.shipped == False])}
+    def not_packed(self, panel_name=None, survey_schedule=None, map_area=None,
+                   start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    packed=False,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    packed=False).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            packed=False,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        poc_vl = {
-            'Total Requisitions': len(df_poc_vl),
-            'Drawn': len(df_poc_vl[
-                (df_poc_vl.is_drawn.str.contains(YES, regex=True, na=False))]),
-            'Not Drawn': len(df_poc_vl[
-                (df_poc_vl.is_drawn.str.contains(NO, regex=True, na=False))]),
-            'Recieved': len(df_poc_vl[df_poc_vl.received]),
-            'Not Recieved': len(df_poc_vl[df_poc_vl.received == False]),
-            'Processed': len(df_poc_vl[df_poc_vl.processed]),
-            'Not Processed': len(df_poc_vl[df_poc_vl.processed == False]),
-            'Packed': len(df_poc_vl[df_poc_vl.packed]),
-            'Not Packed': len(df_poc_vl[df_poc_vl.packed == False]),
-            'Shipped': len(df_poc_vl[df_poc_vl.shipped]),
-            'Not Shipped': len(df_poc_vl[df_poc_vl.shipped == False])}
+    def shipped(self, panel_name=None, survey_schedule=None, map_area=None,
+                start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    shipped=True,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    shipped=True).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            shipped=True,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
-        viral_load = {
-            'Total Requisitions': len(df_vl),
-            'Drawn': len(df_vl[(df_vl.is_drawn.str.contains(YES, regex=True, na=False))]),
-            'Not Drawn': len(df_vl[(df_vl.is_drawn.str.contains(NO, regex=True, na=False))]),
-            'Recieved': len(df_vl[df_vl.received]),
-            'Not Recieved': len(df_vl[df_vl.received == False]),
-            'Processed': len(df_vl[df_vl.processed]),
-            'Not Processed': len(df_vl[df_vl.processed == False]),
-            'Packed': len(df_vl[df_vl.packed]),
-            'Not Packed': len(df_vl[df_vl.packed == False]),
-            'Shipped': len(df_vl[df_vl.shipped]),
-            'Not Shipped': len(df_vl[df_vl.shipped == False])}
+    def not_shipped(self, panel_name=None, survey_schedule=None, map_area=None,
+                    start_date=None, end_date=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+            if start_date and end_date:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    shipped=False,
+                    requisition_datetime__lte=end_date,
+                    requisition_datetime__gte=start_date).count()
+            else:
+                return SubjectRequisition.objects.filter(
+                    panel_name=panel_name,
+                    subject_visit__survey_schedule__icontains=survey_schedule,
+                    shipped=False).count()
+        return SubjectRequisition.objects.filter(
+            panel_name=panel_name,
+            shipped=False,
+            subject_visit__survey_schedule__icontains=survey_schedule).count()
 
+    def requisition_per_panel_name(self, panel_name=None, survey_schedule=None,
+                                   map_area=None, start_date=None,
+                                   end_date=None):
         return {
-            'Microtube': microtube,
-            'RBD': rbd,
-            'Venous': venous,
-            'Virul Load': viral_load,
-            'POC VL': poc_vl}
+            'Total Requisitions': self.total_requisitions(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Drawn': self.is_drawn(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Not Drawn': self.not_drawn(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Received': self.received(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Not Received': self.not_received(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Processed': self.processed(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Not Processed': self.not_processed(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Packed': self.packed(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Not Packed': self.not_packed(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Shipped': self.shipped(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'Not Shipped': self.not_shipped(
+                panel_name=panel_name, survey_schedule=survey_schedule,
+                map_area=map_area, start_date=start_date, end_date=end_date)}
+
+    def requisition_report(self, map_area=None, start_date=None, end_date=None):
+
+        year_1 = {
+            'MICROTUBE': self.requisition_per_panel_name(
+                panel_name=MICROTUBE, survey_schedule=YEAR_1_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VENOUS': self.requisition_per_panel_name(
+                panel_name=VENOUS, survey_schedule=YEAR_1_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date),
+            'RESEARCH BLOOD DRAW': self.requisition_per_panel_name(
+                panel_name=RESEARCH_BLOOD_DRAW, survey_schedule=YEAR_1_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VIRAL LOAD': self.requisition_per_panel_name(
+                panel_name=VIRAL_LOAD, survey_schedule=YEAR_1_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'ELISA': self.requisition_per_panel_name(
+                panel_name=ELISA, survey_schedule=YEAR_1_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date)}
+
+        year_2 = {
+            'MICROTUBE': self.requisition_per_panel_name(
+                panel_name=MICROTUBE, survey_schedule=YEAR_2_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VENOUS': self.requisition_per_panel_name(
+                panel_name=VENOUS, survey_schedule=YEAR_2_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date),
+            'RESEARCH BLOOD DRAW': self.requisition_per_panel_name(
+                panel_name=RESEARCH_BLOOD_DRAW, survey_schedule=YEAR_2_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VIRAL LOAD': self.requisition_per_panel_name(
+                panel_name=VIRAL_LOAD, survey_schedule=YEAR_2_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'ELISA': self.requisition_per_panel_name(
+                panel_name=ELISA, survey_schedule=YEAR_2_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date)}
+
+        year_3 = {
+            'MICROTUBE': self.requisition_per_panel_name(
+                panel_name=MICROTUBE, survey_schedule=YEAR_3_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VENOUS': self.requisition_per_panel_name(
+                panel_name=VENOUS, survey_schedule=YEAR_3_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date),
+            'RESEARCH BLOOD DRAW': self.requisition_per_panel_name(
+                panel_name=RESEARCH_BLOOD_DRAW, survey_schedule=YEAR_3_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'VIRAL LOAD': self.requisition_per_panel_name(
+                panel_name=VIRAL_LOAD, survey_schedule=YEAR_3_SURVEY,
+                map_area=map_area, start_date=start_date, end_date=end_date),
+            'ELISA': self.requisition_per_panel_name(
+                panel_name=ELISA, survey_schedule=YEAR_3_SURVEY, map_area=map_area,
+                start_date=start_date, end_date=end_date)}
+
+        return [year_1, year_2, year_3]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -166,11 +336,16 @@ class RequisitionReportViewMixin:
                     'map_area')
                 start_date = requisition_report_form_instance.data.get(
                     'start_date')
-                end_end = requisition_report_form_instance.data.get('end_end')
+                if start_date:
+                    start_date = datetime.strptime(start_date, '%m/%d/%Y')
+                end_date = requisition_report_form_instance.data.get('end_end')
+                if end_date:
+                    end_date = datetime.strptime(end_date, '%m/%d/%Y')
+                self.requisition_report(map_area, start_date, end_date)
                 requisition_report = self.requisition_report(
-                    study_site_name=map_area,
+                    map_area=map_area,
                     start_date=start_date,
-                    end_date=end_end)
+                    end_date=end_date)
                 context.update(
                     requisition_report=requisition_report,
                     map_area=map_area)
