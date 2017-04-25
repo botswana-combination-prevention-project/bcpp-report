@@ -336,9 +336,11 @@ class RequisitionReportViewMixin:
                     'map_area')
                 start_date = requisition_report_form_instance.data.get(
                     'start_date')
-                start_date = datetime.strptime(start_date, '%m/%d/%Y')
+                if start_date:
+                    start_date = datetime.strptime(start_date, '%m/%d/%Y')
                 end_date = requisition_report_form_instance.data.get('end_end')
-                end_date = datetime.strptime(end_date, '%m/%d/%Y')
+                if end_date:
+                    end_date = datetime.strptime(end_date, '%m/%d/%Y')
                 self.requisition_report(map_area, start_date, end_date)
                 requisition_report = self.requisition_report(
                     map_area=map_area,
