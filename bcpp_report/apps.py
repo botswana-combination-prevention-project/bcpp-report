@@ -23,7 +23,7 @@ class AppConfig(DjangoAppConfig):
 
     # Files headers
     plot_hearder = [
-        'confirmed', 'ess', 'enrolled',
+        'confirmed', 'ess', 'rss', 'enrolled',
         'accessible', 'status', 'access_attempts', 'map_area']
     household_strucuture_hearder = [
         'survey_schedule', 'enumerated', 'enumeration_attempts',

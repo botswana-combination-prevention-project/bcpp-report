@@ -45,7 +45,7 @@ class MemberReportViewMixin:
                     df_year_1[(df_year_1.eligible_member) &
                               (df_year_1.present_today) &
                               (df_year_1.eligible_subject == False)]),
-                'Enrollment los': len(
+                'Enrollment loss': len(
                     df_year_1[df_year_1.enrollment_loss_completed == False]),
                 'Undecided': len(df_year_1[df_year_1.undecided]),
                 'Refused': len(df_year_1[df_year_1.refused]),
