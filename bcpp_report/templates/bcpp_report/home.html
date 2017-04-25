@@ -28,30 +28,12 @@
 {% block main %}
 {{ block.super }}
 <div id="exTab2" class="container">	
-	<div class="alert alert-warning alert-dismissable fade in">
-		{% if messages %}
-		<ul class="messages">
-			{% for message in messages %}
-				<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-		    {% endfor %}
-		</ul>
-		{% endif %}
-	</div>
 	<hr>
 		{% if map_area %}
 			Reports for <b>{{map_area}}</b>
 		{% else %}
-			{% if created_file.map_area == 'All Communities' %}
-				Reports for <b>All communities</b>
-			{% else %}
-				<b>{{ created_file.map_area }}</b>
-			{% endif %}
+			Reports for <b>All communities</b>
 		{% endif %}
-		<span class="pull-right">
-		{% if reports_created_datetime %}
-			Report files generated on: <b>{{reports_created_datetime}}</b>
-		{% endif %}
-		</span>
 	<hr>
 	<ul class="nav nav-tabs">
 		<li class="active">
@@ -59,9 +41,6 @@
 		</li><li><a href="#2" data-toggle="tab">Household</a></li>
 		<li><a href="#3" data-toggle="tab">Member Report</a></li>
 		<li><a href="#4" data-toggle="tab">Specimen Report</a></li>
-		<span class="pull-right">
-			<li><a role="button" class="btn btn-sm btn-default btn-block" href="{% url 'bcpp_report:home_url' %}">Home</a></li>
-		</span>
 	</ul>
 
 	<div class="tab-content ">
@@ -84,7 +63,7 @@
 						<div class="panel-heading">
 							Household Search Form
 						</div>
-					    <form id="household-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+					    <form id="household-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 							{% csrf_token %}
 							{{ household_report_form }}
 							<input type="submit" value="Query">
@@ -104,7 +83,7 @@
 						<div class="panel-heading">
 							Member Search Form
 						</div>
-					    <form id="household-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+					    <form id="household-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 							{% csrf_token %}
 							{{ member_report_form }}
 							<input type="submit" value="Query">

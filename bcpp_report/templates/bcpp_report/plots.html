@@ -1,7 +1,7 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
 		Plot Statistics
-		<form id="plot-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+		<form id="plot-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 			{% csrf_token %}
 			{{ form }}
 			<input type="submit" value="Query">

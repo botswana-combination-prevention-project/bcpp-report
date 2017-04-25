@@ -12,7 +12,7 @@
 			<div id="div-home-right" class="col-md-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">Requisition Search Form</div>
-				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+				<form id="requisition-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 					{% csrf_token %}
 					{{ requisition_report_form }}
 					<input type="submit" value="Query">
@@ -49,7 +49,7 @@
 			<div id="div-home-right" class="col-md-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">Requisition Search Form</div>
-				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+				<form id="requisition-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 					{% csrf_token %}
 					{{ requisition_report_form }}
 					<input type="submit" value="Query">
@@ -86,7 +86,7 @@
 			<div id="div-home-right" class="col-md-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">Requisition Search Form</div>
-				<form id="requisition-report" action="{% url 'bcpp_report:reports_view_url' %}" method="post">
+				<form id="requisition-report" action="{% url 'bcpp_report:home_url' %}" method="post">
 					{% csrf_token %}
 					{{ requisition_report_form }}
 					<input type="submit" value="Query">

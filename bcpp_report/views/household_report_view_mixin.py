@@ -4,88 +4,150 @@ import pandas as pd
 from django.apps import apps as django_apps
 from django.contrib import messages
 
+from household.models import HouseholdStructure
+
+from ..constants import YEAR_1_SURVEY, YEAR_2_SURVEY, YEAR_3_SURVEY
 from ..forms import HouseholdQueryReportForm
 
 
 class HouseholdReportViewMixin:
 
+    def total_households(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule).count()
+
+    def enumerated(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enumerated=True).count()
+
+    def not_enumerated(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enumerated=False).count()
+
+    def enumeration_attempts_once(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enumeration_attempts=1).count()
+
+    def enumeration_attempts_twice(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enumeration_attempts=2).count()
+
+    def enumeration_attempts_three_or_more(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enumeration_attempts__gte=2).count()
+
+    def enrolled(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enrolled=True).count()
+
+    def not_enrolled(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            enrolled=False).count()
+
+    def no_eligible_members(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            eligible_members=False).count()
+
+    def refused_enumeration(self, survey_schedule=None, map_area=None):
+        if map_area and survey_schedule:
+            survey_schedule = survey_schedule + '.' + map_area
+        return HouseholdStructure.objects.filter(
+            survey_schedule__icontains=survey_schedule,
+            refused_enumeration=True).count()
+
     def household_report(self, map_area=None):
-        household_structure_header = django_apps.get_app_config(
-            'bcpp_report').household_structure_header
-        household_structures_file_path = django_apps.get_app_config(
-            'bcpp_report').household_structures_file_path
-        if not os.path.exists(household_structures_file_path):
-            messages.add_message(
-                self.request,
-                messages.WARNING,
-                'The file {0} does not exists, please generate report files first.'.format(household_structures_file_path))
-            return {}
-        else:
-            df = pd.read_csv(
-                household_structures_file_path,
-                skipinitialspace=True,
-                usecols=household_structure_header)
-            if map_area:
-                df = df[(df.survey_schedule.str.contains(map_area, regex=True))]
 
-            #  Build data frames for different years for household structure
-            df_year_1_hs = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-1', regex=True)]
-            df_year_2_hs = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-2', regex=True)]
-            df_year_3_hs = df[df.survey_schedule.str.contains(
-                'bcpp-survey.bcpp-year-3', regex=True)]
+        year_1_report = {
+            'Total Households': self.total_households(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Enumerated': self.enumerated(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Not enumerated': self.not_enumerated(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 1 times': self.enumeration_attempts_once(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 2 times': self.enumeration_attempts_twice(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 3 times': self.enumeration_attempts_three_or_more(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Enrolled households': self.enrolled(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Not enrolled': self.not_enrolled(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'No iligible members': self.no_eligible_members(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area),
+            'Refused enumeration': self.refused_enumeration(
+                survey_schedule=YEAR_1_SURVEY, map_area=map_area)}
 
-            year_1_report = {
-                'Total Households': len(df_year_1_hs),
-                'Enumerated': len(df_year_1_hs[df_year_1_hs.enumerated]),
-                'Not enumerated': len(df_year_1_hs[df_year_1_hs.enumerated == False]),
-                'Failled enumeration attempts 1 times': len(
-                    df_year_1_hs[df_year_1_hs.enumeration_attempts == 1]),
-                'Failled enumeration attempts 2 times': len(
-                    df_year_1_hs[df_year_1_hs.enumeration_attempts == 2]),
-                'Failled enumeration attempts 3 times': len(
-                    df_year_1_hs[df_year_1_hs.enumeration_attempts == 3]),
-                'Enrolled households': len(df_year_1_hs[df_year_1_hs.enrolled]),
-                'Not enrolled': len(df_year_1_hs[df_year_1_hs.enrolled == False]),
-                'No iligible members': len(
-                    df_year_1_hs[df_year_1_hs.eligible_members == False]),
-                'Refused enumeration': len(
-                    df_year_1_hs[df_year_1_hs.refused_enumeration])}
+        year_2_report = {
+            'Total Households': self.total_households(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Enumerated': self.enumerated(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Not enumerated': self.not_enumerated(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 1 times': self.enumeration_attempts_once(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 2 times': self.enumeration_attempts_twice(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 3 times': self.enumeration_attempts_three_or_more(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Enrolled households': self.enrolled(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Not enrolled': self.not_enrolled(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'No iligible members': self.no_eligible_members(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area),
+            'Refused enumeration': self.refused_enumeration(
+                survey_schedule=YEAR_2_SURVEY, map_area=map_area)}
 
-            year_2_report = {
-                'Total Households': len(df_year_2_hs),
-                'Enumerated': len(df_year_2_hs[df_year_2_hs.enumerated]),
-                'Not enumerated': len(df_year_2_hs[df_year_2_hs.enumerated == False]),
-                'Failled enumeration attempts 1 times': len(
-                    df_year_2_hs[df_year_2_hs.enumeration_attempts == 1]),
-                'Failled enumeration attempts 2 times': len(
-                    df_year_2_hs[df_year_2_hs.enumeration_attempts == 2]),
-                'Failled enumeration attempts 3 times': len(
-                    df_year_2_hs[df_year_2_hs.enumeration_attempts == 3]),
-                'Enrolled households': len(df_year_2_hs[df_year_2_hs.enrolled]),
-                'Not enrolled': len(df_year_2_hs[df_year_2_hs.enrolled == False]),
-                'No iligible members': len(
-                    df_year_2_hs[df_year_2_hs.eligible_members == False]),
-                'Refused enumeration': len(
-                    df_year_2_hs[df_year_2_hs.refused_enumeration])}
-
-            year_3_report = {
-                'Total Households': len(df_year_3_hs),
-                'Enumerated': len(df_year_3_hs[df_year_3_hs.enumerated]),
-                'Not enumerated': len(df_year_3_hs[df_year_3_hs.enumerated == False]),
-                'Failled enumeration attempts 1 times': len(
-                    df_year_3_hs[df_year_3_hs.enumeration_attempts == 1]),
-                'Failled enumeration attempts 2 times': len(
-                    df_year_3_hs[df_year_3_hs.enumeration_attempts == 2]),
-                'Failled enumeration attempts 3 times': len(
-                    df_year_3_hs[df_year_3_hs.enumeration_attempts == 3]),
-                'Enrolled households': len(df_year_3_hs[df_year_3_hs.enrolled]),
-                'Not enrolled': len(df_year_3_hs[df_year_3_hs.enrolled == False]),
-                'No iligible members': len(
-                    df_year_3_hs[df_year_3_hs.eligible_members == False]),
-                'Refused enumeration': len(
-                    df_year_3_hs[df_year_3_hs.refused_enumeration])}
+        year_3_report = {
+            'Total Households': self.total_households(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Enumerated': self.enumerated(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Not enumerated': self.not_enumerated(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 1 times': self.enumeration_attempts_once(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 2 times': self.enumeration_attempts_twice(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Failled enumeration attempts 3 times': self.enumeration_attempts_three_or_more(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Enrolled households': self.enrolled(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Not enrolled': self.not_enrolled(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'No iligible members': self.no_eligible_members(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area),
+            'Refused enumeration': self.refused_enumeration(
+                survey_schedule=YEAR_3_SURVEY, map_area=map_area)}
 
         return {'Year 1': year_1_report, 'Year 2': year_2_report, 'Year 3': year_3_report}
 
