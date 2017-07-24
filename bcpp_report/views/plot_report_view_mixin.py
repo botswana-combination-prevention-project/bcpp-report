@@ -1,10 +1,7 @@
-from django.apps import apps as django_apps
-from django.contrib import messages
 from django.views.generic.edit import FormView
 
-from plot.constants import (
-    NON_RESIDENTIAL, RESIDENTIAL_NOT_HABITABLE,
-    RESIDENTIAL_HABITABLE)
+from plot.constants import NON_RESIDENTIAL, RESIDENTIAL_NOT_HABITABLE
+from plot.constants import RESIDENTIAL_HABITABLE
 from plot.models import Plot
 
 from ..forms import PlotQueryReportForm

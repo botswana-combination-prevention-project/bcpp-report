@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from bcpp_labs.constants import (
-    MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, ELISA)
+from bcpp_labs.constants import MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS
+from bcpp_labs.constants import VIRAL_LOAD, ELISA
 from bcpp_subject.models import SubjectRequisition
 
 from ..forms import RequisitionQueryReportForm
