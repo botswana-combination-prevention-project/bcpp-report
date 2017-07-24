@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from bcpp_subject.constants import (
+from bcpp_labs.constants import (
     MICROTUBE, RESEARCH_BLOOD_DRAW, VENOUS, VIRAL_LOAD, ELISA)
 from bcpp_subject.models import SubjectRequisition
 
