@@ -1,9 +1,3 @@
-import os
-import pandas as pd
-
-from django.apps import apps as django_apps
-from django.contrib import messages
-
 from household.models import HouseholdStructure
 
 from ..constants import YEAR_1_SURVEY, YEAR_2_SURVEY, YEAR_3_SURVEY
